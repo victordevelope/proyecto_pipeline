@@ -1,0 +1,33 @@
+name: CD Transaction Validator
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Instalar dependencias
+        run: |
+          cd services/transaction-validator
+          npm ci
+      - name: Ejecutar pruebas
+        run: |
+          cd services/transaction-validator
+          npm test -- --ci --reporters=default
+
+  deploy-bluegreen:
+    needs: build-test
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir y desplegar Blue/Green
+        shell: pwsh
+        run: |
+          docker compose version
+          pwsh ./scripts/deploy-bluegreen.ps1
+

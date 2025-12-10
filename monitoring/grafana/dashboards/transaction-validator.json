@@ -1,0 +1,30 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Latencia p95",
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Errores 5xx",
+      "targets": [
+        {"expr": "sum(rate(http_errors_total[5m]))"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memoria proceso",
+      "targets": [
+        {"expr": "avg(tv_process_resident_memory_bytes)"}
+      ]
+    }
+  ],
+  "schemaVersion": 37,
+  "title": "Transaction Validator",
+  "version": 1
+}

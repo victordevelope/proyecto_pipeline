@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'transaction-validator-blue'
+    static_configs:
+      - targets: ['transaction-validator-blue:8080']
+
+  - job_name: 'transaction-validator-green'
+    static_configs:
+      - targets: ['transaction-validator-green:8080']
+

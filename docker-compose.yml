@@ -1,0 +1,116 @@
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:rw
+    depends_on:
+      - transaction-validator-blue
+      - transaction-validator-green
+    networks:
+      - frontend
+
+  transaction-validator-blue:
+    build:
+      context: ./services/transaction-validator
+    container_name: transaction-validator-blue
+    environment:
+      - COLOR=blue
+      - ERROR_RATE=0
+      - PEAK_LATENCY_MS=0
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+    expose:
+      - "8080"
+    ports:
+      - "8081:8080"
+    networks:
+      - frontend
+      - observability
+
+  transaction-validator-green:
+    build:
+      context: ./services/transaction-validator
+    container_name: transaction-validator-green
+    environment:
+      - COLOR=green
+      - ERROR_RATE=0
+      - PEAK_LATENCY_MS=0
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
+    expose:
+      - "8080"
+    ports:
+      - "8082:8080"
+    networks:
+      - frontend
+      - observability
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+    depends_on:
+      - transaction-validator-blue
+      - transaction-validator-green
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning/dashboards
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    networks:
+      - observability
+    depends_on:
+      - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:3.1.1
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: ["-config.file=/etc/loki/config.yml"]
+    volumes:
+      - ./monitoring/loki/config.yml:/etc/loki/config.yml
+    networks:
+      - observability
+
+  promtail:
+    image: grafana/promtail:3.1.1
+    container_name: promtail
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./monitoring/promtail/config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - observability
+    depends_on:
+      - loki
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - observability
+
+networks:
+  frontend:
+  observability:
