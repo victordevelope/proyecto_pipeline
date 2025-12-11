@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 function Get-ActiveColor {
-  $conf = Get-Content -Path "$PSScriptRoot/../nginx/default.conf" -Raw
+  $conf = Get-Content -Path "$PSScriptRoot/../nginx/nginx.conf" -Raw
   if ($conf -match 'transaction-validator-blue') { return 'blue' } else { return 'green' }
 }
 
