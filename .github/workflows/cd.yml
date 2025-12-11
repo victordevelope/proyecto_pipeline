@@ -14,7 +14,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           cd services/transaction-validator
-          npm ci
+          npm install
       - name: Ejecutar pruebas
         run: |
           cd services/transaction-validator
@@ -24,10 +24,22 @@ jobs:
     needs: build-test
     runs-on: self-hosted
     steps:
+      - name: Habilitar rutas largas en Git
+        shell: powershell
+        run: |
+          git config --system core.longpaths true 2>$null
+          git config --global core.longpaths true
+      - name: Limpieza previa de workspace
+        shell: powershell
+        run: |
+          if (Test-Path "$env:GITHUB_WORKSPACE") {
+            $nm = Join-Path $env:GITHUB_WORKSPACE 'services/transaction-validator/node_modules'
+            if (Test-Path $nm) { Remove-Item -Path $nm -Recurse -Force -ErrorAction SilentlyContinue }
+          }
       - uses: actions/checkout@v4
       - name: Construir y desplegar Blue/Green
-        shell: pwsh
+        shell: powershell
         run: |
           docker compose version
-          pwsh ./scripts/deploy-bluegreen.ps1
-
+          docker compose up -d nginx transaction-validator-blue
+          powershell -File ./scripts/deploy-bluegreen.ps1
