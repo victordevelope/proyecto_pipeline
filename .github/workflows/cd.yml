@@ -7,7 +7,14 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Preparar Git
+        run: |
+          git config --global --add safe.directory '*'
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
+          clean: true
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
