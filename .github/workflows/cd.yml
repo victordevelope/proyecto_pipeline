@@ -22,7 +22,10 @@ jobs:
 
   deploy-bluegreen:
     needs: build-test
-    runs-on: self-hosted
+    runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        shell: powershell
     steps:
       - name: Habilitar rutas largas en Git
         shell: powershell
