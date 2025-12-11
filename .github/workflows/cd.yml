@@ -34,11 +34,12 @@ jobs:
       run:
         shell: powershell
     steps:
-      - name: Habilitar rutas largas en Git
+      - name: Habilitar rutas largas en Git (sin privilegios de sistema)
         shell: powershell
         run: |
-          git config --system core.longpaths true 2>$null
           git config --global core.longpaths true
+          git config --global --add safe.directory "$env:GITHUB_WORKSPACE"
+          git config core.longpaths true
       - name: Limpieza previa de workspace
         shell: powershell
         run: |
