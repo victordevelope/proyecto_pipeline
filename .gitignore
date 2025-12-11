@@ -1,0 +1,6 @@
+services/transaction-validator/node_modules/
+**/node_modules/
+coverage/
+.DS_Store
+*.log
+.env

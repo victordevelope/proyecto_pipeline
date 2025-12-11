@@ -37,6 +37,9 @@ jobs:
             if (Test-Path $nm) { Remove-Item -Path $nm -Recurse -Force -ErrorAction SilentlyContinue }
           }
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          clean: false
       - name: Construir y desplegar Blue/Green
         shell: powershell
         run: |
